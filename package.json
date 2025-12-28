@@ -1,0 +1,15 @@
+{
+  "name": "memory-leak-scenario",
+  "version": "1.0.0",
+  "description": "Practitioner Scenario: Memory Leak Detection",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node tests/run-tests.js",
+    "check-solution": "node tests/check-solution.js"
+  },
+  "keywords": ["practitioner", "debugging", "memory-leak"],
+  "author": "Practitioner Platform",
+  "license": "MIT"
+}
+
