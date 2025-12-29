@@ -5,7 +5,7 @@
  * Göreviniz bu leak'i tespit edip düzeltmek.
  */
 
-class SearchCacheService {
+class SearchCacheService { 
   constructor() {
     // 🐛 Problem: Static-like cache that never gets cleared
     this.cache = {};
