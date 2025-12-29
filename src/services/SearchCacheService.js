@@ -5,7 +5,7 @@
  * Memory leak problemi çözülmüş versiyonu
  */
 
-class SearchCacheService {
+class SearchCacheService { 
   constructor(maxSize = 100) {
     // ✅ Map kullanarak insertion order'ı koruyoruz
     this.cache = new Map();
