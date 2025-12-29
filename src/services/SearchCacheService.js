@@ -1,24 +1,33 @@
 /**
  * SearchCacheService - Ürün arama sonuçlarını cache'ler
  * 
- * 🐛 BUG: Bu serviste bir memory leak var!
- * Göreviniz bu leak'i tespit edip düzeltmek.
+ * ✅ ÇÖZÜM: LRU (Least Recently Used) cache implementasyonu
+ * Memory leak problemi çözülmüş versiyonu
  */
 
 class SearchCacheService { 
-  constructor() {
-    // 🐛 Problem: Static-like cache that never gets cleared
-    this.cache = {};
+  constructor(maxSize = 100) {
+    // ✅ Map kullanarak insertion order'ı koruyoruz
+    this.cache = new Map();
+    // ✅ Maximum cache boyutu belirliyoruz
+    this.maxSize = maxSize;
   }
 
   /**
    * Ürünleri arar ve sonuçları cache'ler
+   * LRU pattern ile cache boyutunu kontrol eder
    */
   search(query, products) {
     // Check cache first
-    if (this.cache[query]) {
+    if (this.cache.has(query)) {
       console.log(`Cache hit for: ${query}`);
-      return this.cache[query];
+      const results = this.cache.get(query);
+      
+      // ✅ LRU: Cache hit olduğunda entry'yi en sona taşı (most recently used)
+      this.cache.delete(query);
+      this.cache.set(query, results);
+      
+      return results;
     }
 
     // Filter products (simple search)
@@ -27,9 +36,16 @@ class SearchCacheService {
       p.category.toLowerCase().includes(query.toLowerCase())
     );
 
-    // 🐛 BUG: Adding to cache without any limit or cleanup
-    // Her yeni sorgu cache'e ekleniyor ama hiç temizlenmiyor!
-    this.cache[query] = results;
+    // ✅ Cache boyutu limitini kontrol et
+    if (this.cache.size >= this.maxSize) {
+      // En eski entry'yi sil (LRU eviction)
+      const oldestKey = this.cache.keys().next().value;
+      this.cache.delete(oldestKey);
+      console.log(`Cache full, evicting oldest entry: ${oldestKey}`);
+    }
+
+    // Yeni sonucu cache'e ekle
+    this.cache.set(query, results);
 
     return results;
   }
@@ -38,13 +54,47 @@ class SearchCacheService {
    * Cache boyutunu döndürür
    */
   getCacheSize() {
-    return Object.keys(this.cache).length;
+    return this.cache.size;
   }
 
-  // TODO: Öğrencinin eklemesi gereken metodlar:
-  // - clearOldEntries() 
-  // - setMaxCacheSize()
-  // - useLRU()
+  /**
+   * Cache'i tamamen temizler
+   */
+  clearCache() {
+    this.cache.clear();
+    console.log('Cache cleared');
+  }
+
+  /**
+   * Belirli bir sorgu cache'den siler
+   */
+  removeFromCache(query) {
+    return this.cache.delete(query);
+  }
+
+  /**
+   * Maximum cache boyutunu değiştirir
+   */
+  setMaxCacheSize(newSize) {
+    if (newSize < 1) {
+      throw new Error('Max cache size must be at least 1');
+    }
+    
+    this.maxSize = newSize;
+    
+    // Yeni limit daha küçükse, fazla entry'leri sil
+    while (this.cache.size > this.maxSize) {
+      const oldestKey = this.cache.keys().next().value;
+      this.cache.delete(oldestKey);
+    }
+  }
+
+  /**
+   * Tüm cache key'lerini döndürür
+   */
+  getCacheKeys() {
+    return Array.from(this.cache.keys());
+  }
 }
 
 module.exports = SearchCacheService;
